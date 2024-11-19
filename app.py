@@ -180,8 +180,14 @@ def home():
 
 @app.route('/messages', methods=['GET'])
 def get_messages():
-    messages = Message.query.order_by(Message.timestamp.desc()).limit(100).all()
-    return jsonify([message.to_dict() for message in messages[::-1]])
+    try:
+        # Son 100 mesajı getir ve tarihe göre sırala
+        messages = Message.query.order_by(Message.timestamp.desc()).limit(100).all()
+        # Mesajları JSON formatına çevir
+        return jsonify([message.to_dict() for message in messages])
+    except Exception as e:
+        print(f"Hata: {str(e)}")
+        return jsonify([])  # Hata durumunda boş liste dön
 
 @app.route('/messages', methods=['POST'])
 def post_message():
