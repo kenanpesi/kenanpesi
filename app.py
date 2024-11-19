@@ -147,10 +147,23 @@ def home():
                         message: message
                     }),
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    if (data.error) {
+                        alert('Hata: ' + data.error);
+                        return;
+                    }
                     document.getElementById('message').value = '';
                     loadMessages();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Mesaj gönderilemedi. Lütfen tekrar deneyin.');
                 });
             }
 
@@ -191,14 +204,22 @@ def get_messages():
 
 @app.route('/messages', methods=['POST'])
 def post_message():
-    data = request.json
-    message = Message(
-        name=data['name'],
-        message=data['message']
-    )
-    db.session.add(message)
-    db.session.commit()
-    return jsonify(message.to_dict())
+    try:
+        data = request.json
+        if not data or 'name' not in data or 'message' not in data:
+            return jsonify({'error': 'Name and message are required'}), 400
+
+        message = Message(
+            name=data['name'],
+            message=data['message']
+        )
+        db.session.add(message)
+        db.session.commit()
+        return jsonify(message.to_dict())
+    except Exception as e:
+        print(f"Mesaj gönderme hatası: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': 'Message could not be sent'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
