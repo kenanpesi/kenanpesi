@@ -16,6 +16,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///chat.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+# Veritabanı tablolarını oluştur
+with app.app_context():
+    db.create_all()
+
 # Mesaj modeli
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -189,11 +193,6 @@ def post_message():
     db.session.add(message)
     db.session.commit()
     return jsonify(message.to_dict())
-
-@app.before_first_request
-def create_tables():
-    with app.app_context():
-        db.create_all()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
