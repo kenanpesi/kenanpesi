@@ -16,12 +16,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///chat.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Veritabanı tablolarını oluştur
-with app.app_context():
-    db.create_all()
-
 # Mesaj modeli
 class Message(db.Model):
+    __tablename__ = 'messages'  # Tablo adını açıkça belirtiyoruz
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     message = db.Column(db.String(500), nullable=False)
@@ -34,6 +31,16 @@ class Message(db.Model):
             'message': self.message,
             'timestamp': self.timestamp.isoformat()
         }
+
+# Veritabanı tablolarını oluştur
+def init_db():
+    with app.app_context():
+        db.drop_all()  # Mevcut tabloları sil
+        db.create_all()  # Tabloları yeniden oluştur
+        print("Veritabanı tabloları oluşturuldu!")
+
+# Uygulama başladığında tabloları oluştur
+init_db()
 
 @app.route('/')
 def home():
