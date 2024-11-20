@@ -241,20 +241,22 @@ def home():
                     .then(response => response.json())
                     .then(data => {
                         const messagesDiv = document.getElementById('messages');
-                        messagesDiv.innerHTML = '';
-                        data.forEach(msg => {
-                            const messageDiv = document.createElement('div');
-                            messageDiv.className = 'message';
-                            messageDiv.innerHTML = `
-                                <strong>${msg.name}</strong>
-                                <div>${msg.message}</div>
-                                <div class="time">${new Date(msg.timestamp).toLocaleString('tr-TR')}</div>
+                        let newHtml = '';
+                        // Mesajları ters sırayla ekleyelim (yeniden eskiye)
+                        data.reverse().forEach(msg => {
+                            newHtml += `
+                                <div class="message">
+                                    <strong>${msg.name}</strong>
+                                    <div>${msg.message}</div>
+                                    <div class="time">${new Date(msg.timestamp).toLocaleString('tr-TR')}</div>
+                                </div>
                             `;
-                            messagesDiv.appendChild(messageDiv);
                         });
-                        // Sadece yeni mesaj geldiğinde scroll yapılması için kontrol
-                        if (messagesDiv.scrollTop + messagesDiv.clientHeight >= messagesDiv.scrollHeight - 100) {
-                            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                        
+                        // Sadece içerik değiştiyse güncelle
+                        if (messagesDiv.innerHTML !== newHtml) {
+                            messagesDiv.innerHTML = newHtml;
+                            messagesDiv.scrollTop = 0; // En üste scroll yap
                         }
                     });
             }
@@ -314,15 +316,6 @@ def home():
                 }
             });
 
-            // İsim kaydetme
-            const savedName = localStorage.getItem('chatName');
-            if (savedName) {
-                document.getElementById('name').value = savedName;
-            }
-            document.getElementById('name').addEventListener('change', function(e) {
-                localStorage.setItem('chatName', e.target.value);
-            });
-
             // İlk yükleme ve periyodik güncelleme
             loadMessages();
             setInterval(loadMessages, 3000);
@@ -335,7 +328,7 @@ def home():
 def get_messages():
     try:
         # Son 100 mesajı getir ve tarihe göre sırala
-        messages = Message.query.order_by(Message.timestamp.desc()).limit(100).all()
+        messages = Message.query.order_by(Message.timestamp.asc()).limit(100).all()
         # Mesajları JSON formatına çevir
         return jsonify([message.to_dict() for message in messages])
     except Exception as e:
