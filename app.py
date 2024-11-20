@@ -51,68 +51,188 @@ def home():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Global Chat</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
         <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
             body {
-                font-family: Arial, sans-serif;
-                max-width: 800px;
-                margin: 0 auto;
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
                 padding: 20px;
-                background-color: #f0f2f5;
+                color: #2d3748;
             }
-            #messages {
-                height: 400px;
-                overflow-y: auto;
-                border: 1px solid #ccc;
-                padding: 10px;
+
+            .container {
+                width: 100%;
+                max-width: 800px;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 16px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                padding: 24px;
+                margin-top: 20px;
+            }
+
+            h1 {
+                color: white;
+                text-align: center;
                 margin-bottom: 20px;
-                background-color: white;
-                border-radius: 8px;
+                font-size: 2.5rem;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
             }
+
+            #messages {
+                height: 500px;
+                overflow-y: auto;
+                padding: 16px;
+                margin-bottom: 24px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+
             .message {
-                margin-bottom: 10px;
-                padding: 8px;
-                border-radius: 8px;
-                background-color: #e9ecef;
+                margin-bottom: 16px;
+                padding: 12px 16px;
+                border-radius: 12px;
+                background: #f7fafc;
+                border-left: 4px solid #667eea;
+                animation: fadeIn 0.3s ease-in;
             }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .message:hover {
+                background: #edf2f7;
+                transition: background 0.2s ease;
+            }
+
+            .message strong {
+                color: #4a5568;
+                font-weight: 600;
+            }
+
             .message .time {
-                color: #666;
-                font-size: 0.8em;
+                color: #718096;
+                font-size: 0.85em;
+                margin-top: 4px;
             }
+
+            .input-group {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 16px;
+            }
+
             input[type="text"] {
-                width: 70%;
-                padding: 8px;
-                margin-right: 10px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e2e8f0;
+                border-radius: 8px;
+                font-size: 1rem;
+                transition: all 0.2s ease;
+                background: white;
             }
+
+            input[type="text"]:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+            #name {
+                width: 100%;
+            }
+
+            .send-group {
+                display: flex;
+                gap: 12px;
+            }
+
+            #message {
+                flex-grow: 1;
+            }
+
             button {
-                padding: 8px 15px;
-                background-color: #0084ff;
+                padding: 12px 24px;
+                background: #667eea;
                 color: white;
                 border: none;
-                border-radius: 4px;
+                border-radius: 8px;
+                font-weight: 500;
                 cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 1rem;
             }
+
             button:hover {
-                background-color: #0066cc;
+                background: #5a67d8;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             }
-            #name {
-                width: 30%;
-                margin-bottom: 10px;
+
+            button:active {
+                transform: translateY(0);
+                box-shadow: none;
             }
-            #message {
-                width: 60%;
+
+            /* Scrollbar tasarımı */
+            #messages::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            #messages::-webkit-scrollbar-track {
+                background: #f7fafc;
+                border-radius: 4px;
+            }
+
+            #messages::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+            }
+
+            #messages::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+            }
+
+            /* Mobil uyumluluk */
+            @media (max-width: 640px) {
+                .container {
+                    padding: 16px;
+                }
+
+                #messages {
+                    height: 400px;
+                }
+
+                button {
+                    padding: 12px 16px;
+                }
             }
         </style>
     </head>
     <body>
         <h1>Global Chat</h1>
-        <div id="messages"></div>
-        <div>
-            <input type="text" id="name" placeholder="İsminiz" />
-            <br>
-            <input type="text" id="message" placeholder="Mesajınız" />
-            <button onclick="sendMessage()">Gönder</button>
+        <div class="container">
+            <div id="messages"></div>
+            <div class="input-group">
+                <input type="text" id="name" placeholder="İsminiz" />
+                <div class="send-group">
+                    <input type="text" id="message" placeholder="Mesajınız" />
+                    <button onclick="sendMessage()">Gönder</button>
+                </div>
+            </div>
         </div>
 
         <script>
@@ -126,23 +246,31 @@ def home():
                             const messageDiv = document.createElement('div');
                             messageDiv.className = 'message';
                             messageDiv.innerHTML = `
-                                <strong>${msg.name}:</strong> ${msg.message}
-                                <div class="time">${new Date(msg.timestamp).toLocaleString()}</div>
+                                <strong>${msg.name}</strong>
+                                <div>${msg.message}</div>
+                                <div class="time">${new Date(msg.timestamp).toLocaleString('tr-TR')}</div>
                             `;
                             messagesDiv.appendChild(messageDiv);
                         });
-                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                        // Sadece yeni mesaj geldiğinde scroll yapılması için kontrol
+                        if (messagesDiv.scrollTop + messagesDiv.clientHeight >= messagesDiv.scrollHeight - 100) {
+                            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                        }
                     });
             }
 
             function sendMessage() {
-                const name = document.getElementById('name').value;
-                const message = document.getElementById('message').value;
+                const name = document.getElementById('name').value.trim();
+                const message = document.getElementById('message').value.trim();
                 
                 if (!name || !message) {
                     alert('Lütfen isim ve mesaj giriniz!');
                     return;
                 }
+
+                const button = document.querySelector('button');
+                button.disabled = true;
+                button.style.opacity = '0.7';
 
                 fetch('/messages', {
                     method: 'POST',
@@ -171,12 +299,17 @@ def home():
                 .catch(error => {
                     console.error('Error:', error);
                     alert('Mesaj gönderilemedi. Lütfen tekrar deneyin.');
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    button.style.opacity = '1';
                 });
             }
 
             // Enter tuşu ile mesaj gönderme
             document.getElementById('message').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
                     sendMessage();
                 }
             });
