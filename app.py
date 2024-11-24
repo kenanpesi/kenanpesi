@@ -7,9 +7,14 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'gizli-anahtar-buraya')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
-if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
+
+# PostgreSQL bağlantısı URL'ini ayarla
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -17,8 +22,23 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 # Veritabanı tablolarını oluştur
-with app.app_context():
-    db.create_all()
+def init_db():
+    with app.app_context():
+        db.create_all()
+        # Admin kullanıcısını kontrol et ve oluştur
+        admin_username = os.environ.get('ADMIN_USERNAME', "muradsayagi")
+        admin = User.query.filter_by(username=admin_username).first()
+        if not admin:
+            admin = User(
+                username=admin_username,
+                password_hash=generate_password_hash(os.environ.get('ADMIN_PASSWORD', "eldos"))
+            )
+            db.session.add(admin)
+            db.session.commit()
+            app.logger.info(f"Admin kullanıcısı oluşturuldu: {admin_username}")
+
+# Uygulama başladığında veritabanını başlat
+init_db()
 
 # Sabit admin kullanıcı bilgileri
 ADMIN_USERNAME = "muradsayagi"  # Railway'de environment variable olarak ayarlayın
@@ -52,35 +72,21 @@ def login():
             
             app.logger.info(f"Giriş denemesi: {username}")
             
-            # Admin kullanıcı kontrolü
-            if username == os.environ.get('ADMIN_USERNAME', ADMIN_USERNAME):
-                user = User.query.filter_by(username=username).first()
+            user = User.query.filter_by(username=username).first()
+            
+            if user and check_password_hash(user.password_hash, password):
+                login_user(user)
                 
-                if not user:
-                    # İlk giriş ise admin kullanıcısını oluştur
-                    try:
-                        user = User(username=username, 
-                                  password_hash=generate_password_hash(os.environ.get('ADMIN_PASSWORD', ADMIN_PASSWORD)))
-                        db.session.add(user)
-                        db.session.commit()
-                        app.logger.info(f"Yeni admin kullanıcısı oluşturuldu: {username}")
-                    except Exception as e:
-                        app.logger.error(f"Kullanıcı oluşturma hatası: {str(e)}")
-                        return f"Kullanıcı oluşturulurken hata: {str(e)}", 500
+                # Erişim logunu kaydet
+                try:
+                    log = AccessLog(ip_address=request.remote_addr, user_id=user.id)
+                    db.session.add(log)
+                    db.session.commit()
+                    app.logger.info(f"Başarılı giriş: {username} from {request.remote_addr}")
+                except Exception as e:
+                    app.logger.error(f"Log kayıt hatası: {str(e)}")
                 
-                if check_password_hash(user.password_hash, password):
-                    login_user(user)
-                    
-                    # Erişim logunu kaydet
-                    try:
-                        log = AccessLog(ip_address=request.remote_addr, user_id=user.id)
-                        db.session.add(log)
-                        db.session.commit()
-                        app.logger.info(f"Başarılı giriş: {username} from {request.remote_addr}")
-                    except Exception as e:
-                        app.logger.error(f"Log kayıt hatası: {str(e)}")
-                    
-                    return redirect(url_for('dashboard'))
+                return redirect(url_for('dashboard'))
             
             app.logger.warning(f"Başarısız giriş denemesi: {username}")
             flash('Kullanıcı adı veya şifre hatalı!')
