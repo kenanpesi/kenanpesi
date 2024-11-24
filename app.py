@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from functools import wraps
 import os
 import secrets
 
@@ -46,6 +47,7 @@ init_db()
 
 # Giriş kontrolü
 def login_required(f):
+    @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session:
             return redirect(url_for('login'))
