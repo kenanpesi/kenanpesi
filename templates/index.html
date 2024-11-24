@@ -1,153 +1,107 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dosya Depolama Sistemi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Dosya Depolama</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            margin: 0;
             padding: 20px;
-            color: #2d3748;
+            background-color: #f5f5f5;
         }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 24px;
-        }
-
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        h1 {
-            color: white;
-            text-align: center;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        .header h1 {
             margin: 0;
         }
-
         .logout-btn {
-            padding: 8px 16px;
-            background: #e53e3e;
+            background-color: #ff4444;
             color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
             text-decoration: none;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
         }
-
-        .logout-btn:hover {
-            background: #c53030;
-            transform: translateY(-1px);
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
         }
-
-        .files-list {
-            margin-top: 20px;
+        .file-card {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .file-item {
+        .file-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .file-card .file-icon {
+            width: 100%;
+            height: 150px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            background: #f7fafc;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            transition: all 0.2s ease;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 48px;
+            color: #6c757d;
         }
-
-        .file-item:hover {
-            background: #edf2f7;
-            transform: translateX(5px);
-        }
-
         .file-info {
-            flex-grow: 1;
+            font-size: 14px;
+            color: #666;
         }
-
-        .file-name {
-            font-weight: 500;
-            color: #2d3748;
-        }
-
-        .file-meta {
-            font-size: 0.875rem;
-            color: #718096;
-            margin-top: 4px;
-        }
-
         .download-btn {
-            padding: 8px 16px;
-            background: #667eea;
+            display: block;
+            background-color: #007bff;
             color: white;
+            text-align: center;
+            padding: 8px;
+            border-radius: 5px;
             text-decoration: none;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
+            margin-top: 10px;
         }
-
         .download-btn:hover {
-            background: #5a67d8;
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                padding: 16px;
-            }
-
-            .file-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .download-btn {
-                margin-top: 8px;
-            }
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Dosya Depolama Sistemi</h1>
+        <h1>Dosyalarım</h1>
         <a href="{{ url_for('logout') }}" class="logout-btn">Çıkış Yap</a>
     </div>
-    <div class="container">
-        <div class="files-list">
-            {% for file in files %}
-            <div class="file-item">
-                <div class="file-info">
-                    <div class="file-name">{{ file.original_filename }}</div>
-                    <div class="file-meta">
-                        Boyut: {{ (file.file_size / 1024)|round|int }} KB | 
-                        Yükleme Tarihi: {{ file.upload_date.strftime('%d/%m/%Y %H:%M') }}
-                    </div>
-                </div>
-                <a href="{{ url_for('download_file', filename=file.filename) }}" class="download-btn">İndir</a>
-            </div>
-            {% endfor %}
-            {% if not files %}
-            <p style="text-align: center; color: #718096;">Henüz dosya yüklenmemiş.</p>
+
+    <div class="file-grid">
+        {% for file in files %}
+        <div class="file-card">
+            {% if file.file_type and file.file_type.startswith('image/') %}
+                <img src="{{ url_for('download_file', filename=file.filename) }}" alt="{{ file.original_filename }}">
+            {% else %}
+                <div class="file-icon">📄</div>
             {% endif %}
+            <div class="file-info">
+                <strong>{{ file.original_filename }}</strong><br>
+                Boyut: {{ '{:.1f}'.format(file.file_size / 1024) }} KB<br>
+                Tarih: {{ file.upload_date.strftime('%d/%m/%Y %H:%M') }}
+            </div>
+            <a href="{{ url_for('download_file', filename=file.filename) }}" class="download-btn">İndir</a>
         </div>
+        {% endfor %}
     </div>
 </body>
 </html>

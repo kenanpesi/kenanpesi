@@ -3,78 +3,53 @@ from tkinter import filedialog, messagebox
 import requests
 import os
 
-class UploaderApp:
+# Sabit değerler
+API_KEY = "Ayin2iyul"  # app.py'deki API_KEY ile aynı olmalı
+SERVER_URL = "https://kenanpeyser.up.railway.app"  # Railway'deki uygulama URL'niz
+
+class FileUploaderApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Dosya Yükleme Uygulaması")
-        self.root.geometry("400x200")
+        self.root.title("Dosya Yükleyici")
+        self.root.geometry("400x150")
         
-        # API Anahtarı girişi
-        self.api_key_label = tk.Label(root, text="API Anahtarı:")
-        self.api_key_label.pack(pady=5)
-        
-        self.api_key_entry = tk.Entry(root, width=50)
-        self.api_key_entry.pack(pady=5)
-        
-        # Sunucu URL'si girişi
-        self.server_label = tk.Label(root, text="Sunucu URL'si:")
-        self.server_label.pack(pady=5)
-        
-        self.server_entry = tk.Entry(root, width=50)
-        self.server_entry.insert(0, "http://localhost:5000")  # Varsayılan değer
-        self.server_entry.pack(pady=5)
+        # Ana frame
+        main_frame = tk.Frame(root, padx=20, pady=20)
+        main_frame.pack(expand=True, fill='both')
         
         # Dosya seçme butonu
-        self.select_button = tk.Button(root, text="Dosya Seç ve Yükle", command=self.upload_file)
+        self.select_button = tk.Button(main_frame, text="Dosya Seç ve Yükle", command=self.upload_file)
         self.select_button.pack(pady=20)
         
         # Durum etiketi
-        self.status_label = tk.Label(root, text="")
+        self.status_label = tk.Label(main_frame, text="", wraplength=350)
         self.status_label.pack(pady=10)
 
     def upload_file(self):
-        # Dosya seç
         file_path = filedialog.askopenfilename()
         if not file_path:
-            return
-            
-        api_key = self.api_key_entry.get().strip()
-        if not api_key:
-            messagebox.showerror("Hata", "API anahtarı gerekli!")
-            return
-            
-        server_url = self.server_entry.get().strip()
-        if not server_url:
-            messagebox.showerror("Hata", "Sunucu URL'si gerekli!")
             return
         
         try:
             # Dosyayı yükle
-            files = {'file': open(file_path, 'rb')}
-            headers = {'X-API-Key': api_key}
-            
-            self.status_label.config(text="Dosya yükleniyor...")
-            self.root.update()
-            
-            response = requests.post(f"{server_url}/upload", files=files, headers=headers)
+            with open(file_path, 'rb') as file:
+                files = {'file': file}
+                headers = {'X-API-Key': API_KEY}
+                response = requests.post(f"{SERVER_URL}/upload", files=files, headers=headers)
             
             if response.status_code == 200:
                 messagebox.showinfo("Başarılı", "Dosya başarıyla yüklendi!")
-                self.status_label.config(text="Son yükleme: Başarılı")
+                self.status_label.config(text=f"Son yüklenen dosya: {os.path.basename(file_path)}")
             else:
-                error_msg = response.json().get('error', 'Bilinmeyen bir hata oluştu')
-                messagebox.showerror("Hata", f"Yükleme başarısız: {error_msg}")
-                self.status_label.config(text="Son yükleme: Başarısız")
-                
+                messagebox.showerror("Hata", f"Yükleme başarısız: {response.text}")
+        
         except Exception as e:
             messagebox.showerror("Hata", f"Bir hata oluştu: {str(e)}")
-            self.status_label.config(text="Son yükleme: Hata")
-        
-        finally:
-            if 'files' in locals():
-                files['file'].close()
+
+def main():
+    root = tk.Tk()
+    app = FileUploaderApp(root)
+    root.mainloop()
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = UploaderApp(root)
-    root.mainloop()
+    main()

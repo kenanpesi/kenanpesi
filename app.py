@@ -19,11 +19,15 @@ if database_url and database_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///storage.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max dosya boyutu
+
+# İzin verilen dosya uzantıları
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'pdf', 'doc', 'docx', 'txt'}
 
 # Sabit kullanıcı bilgileri
 ADMIN_USERNAME = "kenanpesi"  # İstediğiniz kullanıcı adını girin
 ADMIN_PASSWORD = "your-password-here"  # İstediğiniz şifreyi girin
-API_KEY = "your-api-key-here"  # İstediğiniz API anahtarını girin
+API_KEY = "Ayin2iyul"  # İstediğiniz API anahtarını girin
 
 # Upload klasörünü oluştur
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -37,6 +41,7 @@ class File(db.Model):
     original_filename = db.Column(db.String(255), nullable=False)
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     file_size = db.Column(db.Integer)
+    file_type = db.Column(db.String(50))  # Dosya türü (örn: image/jpeg)
 
 # Veritabanını oluştur
 def init_db():
@@ -44,6 +49,9 @@ def init_db():
         db.create_all()
 
 init_db()
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Giriş kontrolü
 def login_required(f):
@@ -96,7 +104,7 @@ def upload_file():
     if file.filename == '':
         return jsonify({'error': 'Dosya seçilmedi'}), 400
     
-    if file:
+    if file and allowed_file(file.filename):
         # Güvenli dosya adı oluştur
         filename = secrets.token_hex(8) + os.path.splitext(file.filename)[1]
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -106,7 +114,8 @@ def upload_file():
         file_record = File(
             filename=filename,
             original_filename=file.filename,
-            file_size=os.path.getsize(file_path)
+            file_size=os.path.getsize(file_path),
+            file_type=file.content_type
         )
         db.session.add(file_record)
         db.session.commit()
@@ -115,6 +124,8 @@ def upload_file():
             'message': 'Dosya başarıyla yüklendi',
             'filename': filename
         })
+    else:
+        return jsonify({'error': 'Bu dosya türü desteklenmiyor'}), 400
 
 # Dosya indirme
 @app.route('/download/<filename>')
