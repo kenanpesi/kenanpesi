@@ -1,17 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Unknown</title>
+    <title>Murad Storage</title>
     <style>
         @keyframes matrix {
-            0% { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
-            50% { color: #ffff00; text-shadow: 0 0 20px #ffff00; }
-            100% { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+            0% { color: #00ff00; text-shadow: 0 0 10px #00ff00; transform: translateY(0); }
+            100% { color: #ffff00; text-shadow: 0 0 20px #ffff00; transform: translateY(20px); }
         }
 
         @keyframes scanline {
             0% { transform: translateY(-100%); }
             100% { transform: translateY(100%); }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
         }
 
         body {
@@ -20,269 +28,239 @@
             padding: 20px;
             background-color: #000000;
             color: #00ff00;
+            min-height: 100vh;
             position: relative;
             overflow-x: hidden;
         }
 
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.15),
-                rgba(0, 0, 0, 0.15) 1px,
-                transparent 1px,
-                transparent 2px
-            );
-            pointer-events: none;
-        }
-
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            animation: scanline 4s linear infinite;
-            pointer-events: none;
-        }
-
-        .matrix-text {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0.1;
-            font-family: monospace;
-            white-space: nowrap;
-            font-size: 14px;
-            overflow: hidden;
-        }
-
-        .matrix-text span {
-            animation: matrix 2s infinite;
-            margin-right: 5px;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 20px #00ff00;
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.8);
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            box-shadow: 0 0 10px #00ff00;
-            position: relative;
-            z-index: 2;
+            text-align: center;
+            margin-bottom: 30px;
+            animation: glitch 2s infinite;
         }
 
-        .header h1 {
+        h1, h2 {
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
             margin: 0;
-            color: #00ff00;
-            text-shadow: 0 0 10px #00ff00;
-            font-family: 'Courier New', monospace;
-            animation: matrix 2s infinite;
         }
 
-        .logout-btn {
-            background-color: #000;
-            color: #00ff00;
+        .section {
+            margin-top: 20px;
             border: 1px solid #00ff00;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            font-family: 'Courier New', monospace;
-            transition: all 0.3s;
+            padding: 20px;
         }
 
-        .logout-btn:hover {
-            background-color: #00ff00;
-            color: #000;
-            box-shadow: 0 0 20px #00ff00;
-        }
-
-        .file-grid {
+        .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
-            position: relative;
-            z-index: 2;
+            margin-top: 20px;
         }
 
-        .file-card {
-            background: rgba(0, 0, 0, 0.8);
+        .card {
+            border: 1px solid #00ff00;
             padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #00ff00;
-            box-shadow: 0 0 10px #00ff00;
-            position: relative;
-            transition: all 0.3s;
+            background: rgba(0, 255, 0, 0.1);
         }
 
-        .file-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 20px #00ff00;
+        .card-info {
+            margin: 10px 0;
         }
 
-        .file-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 5px;
-            border: 1px solid #00ff00;
-            margin-bottom: 10px;
-        }
-
-        .file-card .file-icon {
-            width: 100%;
-            height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.5);
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            font-size: 48px;
-            color: #00ff00;
-            text-shadow: 0 0 10px #00ff00;
-        }
-
-        .file-info {
-            font-size: 14px;
-            color: #00ff00;
-            text-shadow: 0 0 5px #00ff00;
-        }
-
-        .button-group {
+        .card-actions {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
 
-        .download-btn, .delete-btn {
-            flex: 1;
-            padding: 8px;
-            border-radius: 5px;
-            text-decoration: none;
-            text-align: center;
+        button, .btn {
+            background: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px 15px;
             cursor: pointer;
-            border: 1px solid #00ff00;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
             transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .download-btn {
-            background-color: #000;
-            color: #00ff00;
-        }
-
-        .delete-btn {
-            background-color: #000;
-            color: #ff0000;
-            border-color: #ff0000;
-        }
-
-        .download-btn:hover {
-            background-color: #00ff00;
+        button:hover, .btn:hover {
+            background: #00ff00;
             color: #000;
-            box-shadow: 0 0 20px #00ff00;
         }
 
-        .delete-btn:hover {
-            background-color: #ff0000;
-            color: #000;
-            box-shadow: 0 0 20px #ff0000;
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
 
-        .no-files {
-            text-align: center;
-            color: #00ff00;
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .upload-form {
+            margin: 20px 0;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.8);
             border: 1px solid #00ff00;
-            border-radius: 5px;
-            box-shadow: 0 0 10px #00ff00;
-            position: relative;
-            z-index: 2;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        input[type="file"] {
+            background: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px;
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="matrix-text" id="matrixText"></div>
+    <div class="container">
+        <div class="header">
+            <h1>Murad Storage</h1>
+        </div>
 
-    <div class="header">
-        <h1>Unknown</h1>
-        <a href="{{ url_for('logout') }}" class="logout-btn">Çıkış Yap</a>
+        <a href="{{ url_for('logout') }}" class="logout-btn btn">Çıkış</a>
+
+        <!-- Uzak Bilgisayarlar -->
+        <div class="section">
+            <h2>Bağlı Bilgisayarlar</h2>
+            <div class="grid" id="computers-grid">
+                {% for computer in computers %}
+                <div class="card">
+                    <div class="card-info">
+                        <strong>Bilgisayar:</strong> {{ computer.hostname }}<br>
+                        <strong>IP:</strong> {{ computer.ip_address }}<br>
+                        <strong>Son Görülme:</strong> {{ computer.last_seen.strftime('%d/%m/%Y %H:%M:%S') }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Dosyalar -->
+        <div class="section">
+            <h2>Dosyalar</h2>
+            <div class="upload-form">
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                    <input type="file" name="file" required>
+                    <button type="submit">Yükle</button>
+                </form>
+            </div>
+
+            <div class="grid">
+                {% for file in files %}
+                <div class="card">
+                    <div class="card-info">
+                        <strong>{{ file.original_filename }}</strong><br>
+                        Boyut: {{ '{:.1f}'.format(file.file_size / 1024) }} KB<br>
+                        Tarih: {{ file.upload_date.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    <div class="card-actions">
+                        <a href="{{ url_for('download_file', filename=file.filename) }}" class="btn">İndir</a>
+                        <form action="{{ url_for('delete_file', file_id=file.id) }}" method="post" style="display: inline;">
+                            <button type="submit" onclick="return confirm('Bu dosyayı silmek istediğinizden emin misiniz?')">Sil</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
-    <div class="file-grid">
-        {% if files %}
-            {% for file in files %}
-            <div class="file-card">
-                {% if file.file_type and file.file_type.startswith('image/') %}
-                    <img src="{{ url_for('download_file', filename=file.filename) }}" alt="{{ file.original_filename }}">
-                {% else %}
-                    <div class="file-icon">📄</div>
-                {% endif %}
-                <div class="file-info">
-                    <strong>{{ file.original_filename }}</strong><br>
-                    Boyut: {{ '{:.1f}'.format(file.file_size / 1024) }} KB<br>
-                    Tarih: {{ file.upload_date.strftime('%d/%m/%Y %H:%M') }}
-                </div>
-                <div class="button-group">
-                    <a href="{{ url_for('download_file', filename=file.filename) }}" class="download-btn">İndir</a>
-                    <form action="{{ url_for('delete_file', file_id=file.id) }}" method="POST" style="flex: 1;">
-                        <button type="submit" class="delete-btn" onclick="return confirm('Bu dosyayı silmek istediğinizden emin misiniz?')">Sil</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="no-files">
-                <p>Henüz dosya yüklenmemiş.</p>
-            </div>
-        {% endif %}
-    </div>
+    <canvas id="matrix-bg"></canvas>
 
     <script>
-        function createMatrixText() {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()';
-            const matrixText = document.getElementById('matrixText');
-            const width = Math.floor(window.innerWidth / 20);
-            const height = Math.floor(window.innerHeight / 20);
+        function createMatrixColumns() {
+            const canvas = document.getElementById('matrix-bg');
+            const ctx = canvas.getContext('2d');
 
-            for (let i = 0; i < width * height; i++) {
-                const span = document.createElement('span');
-                span.textContent = characters[Math.floor(Math.random() * characters.length)];
-                span.style.animationDelay = `${Math.random() * 2}s`;
-                matrixText.appendChild(span);
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const columns = Math.floor(canvas.width / 20);
+            const drops = [];
+
+            for (let i = 0; i < columns; i++) {
+                drops[i] = 1;
             }
 
-            setInterval(() => {
-                const spans = matrixText.getElementsByTagName('span');
-                for (let span of spans) {
-                    if (Math.random() < 0.1) {
-                        span.textContent = characters[Math.floor(Math.random() * characters.length)];
-                    }
-                }
-            }, 100);
+            return { ctx, canvas, drops };
         }
 
-        window.onload = createMatrixText;
+        function animateColumn(column) {
+            const { ctx, canvas, drops } = column;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0F0';
+            ctx.font = '15px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = String.fromCharCode(Math.random() * 128);
+                ctx.fillText(text, i * 20, drops[i] * 20);
+
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+
+            requestAnimationFrame(() => animateColumn(column));
+        }
+
+        window.onload = () => {
+            const column = createMatrixColumns();
+            animateColumn(column);
+        }
+
+        window.onresize = () => {
+            const column = createMatrixColumns();
+            animateColumn(column);
+        }
+
+        // Her 5 saniyede bir bağlı bilgisayarları güncelle
+        function updateConnectedComputers() {
+            fetch('/api/remote/list')
+                .then(response => response.json())
+                .then(computers => {
+                    const grid = document.getElementById('computers-grid');
+                    grid.innerHTML = '';
+
+                    computers.forEach(computer => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <div class="card-info">
+                                <strong>Bilgisayar:</strong> ${computer.hostname}<br>
+                                <strong>IP:</strong> ${computer.ip_address}<br>
+                                <strong>Son Görülme:</strong> ${new Date(computer.last_seen).toLocaleString()}
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        setInterval(updateConnectedComputers, 5000);
     </script>
 </body>
 </html>

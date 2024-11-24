@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory, render_template,
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 import os
 import secrets
@@ -43,6 +43,14 @@ class File(db.Model):
     file_size = db.Column(db.Integer)
     file_type = db.Column(db.String(50))  # Dosya türü (örn: image/jpeg)
 
+# Uzak bilgisayar modeli
+class RemoteComputer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    hostname = db.Column(db.String(255), nullable=False)
+    ip_address = db.Column(db.String(45), nullable=False)
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='active')
+
 # Veritabanını oluştur
 def init_db():
     with app.app_context():
@@ -66,8 +74,8 @@ def login_required(f):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form['username']
+        password = request.form['password']
         
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['logged_in'] = True
@@ -88,44 +96,51 @@ def logout():
 @login_required
 def home():
     files = File.query.order_by(File.upload_date.desc()).all()
-    return render_template('index.html', files=files)
+    computers = RemoteComputer.query.filter(
+        RemoteComputer.last_seen >= datetime.utcnow() - timedelta(minutes=5)
+    ).all()
+    return render_template('index.html', files=files, computers=computers)
 
 # Dosya yükleme (API key ile)
 @app.route('/upload', methods=['POST'])
 def upload_file():
     api_key = request.headers.get('X-API-Key')
-    if not api_key or api_key != API_KEY:
+    if api_key != API_KEY:
         return jsonify({'error': 'Geçersiz API anahtarı'}), 401
     
     if 'file' not in request.files:
-        return jsonify({'error': 'Dosya seçilmedi'}), 400
+        return jsonify({'error': 'Dosya bulunamadı'}), 400
     
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'Dosya seçilmedi'}), 400
     
     if file and allowed_file(file.filename):
-        # Güvenli dosya adı oluştur
-        filename = secrets.token_hex(8) + os.path.splitext(file.filename)[1]
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        original_filename = file.filename
+        file_extension = original_filename.rsplit('.', 1)[1].lower()
+        random_filename = f"{secrets.token_hex(16)}.{file_extension}"
+        
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], random_filename)
         file.save(file_path)
         
-        # Dosya bilgilerini veritabanına kaydet
-        file_record = File(
-            filename=filename,
-            original_filename=file.filename,
-            file_size=os.path.getsize(file_path),
-            file_type=file.content_type
+        file_size = os.path.getsize(file_path)
+        file_type = file.content_type
+        
+        new_file = File(
+            filename=random_filename,
+            original_filename=original_filename,
+            file_size=file_size,
+            file_type=file_type
         )
-        db.session.add(file_record)
+        db.session.add(new_file)
         db.session.commit()
         
         return jsonify({
             'message': 'Dosya başarıyla yüklendi',
-            'filename': filename
-        })
-    else:
-        return jsonify({'error': 'Bu dosya türü desteklenmiyor'}), 400
+            'filename': random_filename
+        }), 200
+    
+    return jsonify({'error': 'Geçersiz dosya türü'}), 400
 
 # Dosya indirme
 @app.route('/download/<filename>')
@@ -138,17 +153,55 @@ def download_file(filename):
 @login_required
 def delete_file(file_id):
     file = File.query.get_or_404(file_id)
-    
-    # Dosyayı diskten sil
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    
     if os.path.exists(file_path):
         os.remove(file_path)
     
-    # Veritabanından sil
     db.session.delete(file)
     db.session.commit()
     
     return redirect(url_for('home'))
+
+# Uzak bilgisayar bağlantısı
+@app.route('/api/remote/connect', methods=['POST'])
+def remote_connect():
+    data = request.get_json()
+    hostname = data.get('hostname')
+    ip_address = request.remote_addr
+    
+    if not hostname:
+        return jsonify({'error': 'Hostname gerekli'}), 400
+    
+    computer = RemoteComputer.query.filter_by(hostname=hostname).first()
+    if computer:
+        computer.ip_address = ip_address
+        computer.last_seen = datetime.utcnow()
+        computer.status = 'active'
+    else:
+        computer = RemoteComputer(
+            hostname=hostname,
+            ip_address=ip_address
+        )
+        db.session.add(computer)
+    
+    db.session.commit()
+    return jsonify({'status': 'success'})
+
+# Uzak bilgisayarları listele
+@app.route('/api/remote/list')
+@login_required
+def list_remote_computers():
+    computers = RemoteComputer.query.filter(
+        RemoteComputer.last_seen >= datetime.utcnow() - timedelta(minutes=5)
+    ).all()
+    
+    return jsonify([{
+        'hostname': c.hostname,
+        'ip_address': c.ip_address,
+        'last_seen': c.last_seen.isoformat(),
+        'status': c.status
+    } for c in computers])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
