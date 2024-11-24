@@ -29,12 +29,34 @@
             padding: 24px;
         }
 
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         h1 {
             color: white;
             text-align: center;
-            margin-bottom: 20px;
             font-size: 2.5rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 0;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #e53e3e;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #c53030;
+            transform: translateY(-1px);
         }
 
         .files-list {
@@ -104,7 +126,10 @@
     </style>
 </head>
 <body>
-    <h1>Dosya Depolama Sistemi</h1>
+    <div class="header">
+        <h1>Dosya Depolama Sistemi</h1>
+        <a href="{{ url_for('logout') }}" class="logout-btn">Çıkış Yap</a>
+    </div>
     <div class="container">
         <div class="files-list">
             {% for file in files %}
