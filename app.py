@@ -17,8 +17,8 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 # Sabit admin kullanıcı bilgileri
-ADMIN_USERNAME = "admin"  # Railway'de environment variable olarak ayarlayın
-ADMIN_PASSWORD = "admin123"  # Railway'de environment variable olarak ayarlayın
+ADMIN_USERNAME = "muradsayagi"  # Railway'de environment variable olarak ayarlayın
+ADMIN_PASSWORD = "eldos"  # Railway'de environment variable olarak ayarlayın
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
