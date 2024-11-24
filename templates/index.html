@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dosya Depolama Sistemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .files-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .file-item:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+        }
+
+        .file-info {
+            flex-grow: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .file-meta {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        .download-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .download-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 16px;
+            }
+
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .download-btn {
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Dosya Depolama Sistemi</h1>
+    <div class="container">
+        <div class="files-list">
+            {% for file in files %}
+            <div class="file-item">
+                <div class="file-info">
+                    <div class="file-name">{{ file.original_filename }}</div>
+                    <div class="file-meta">
+                        Boyut: {{ (file.file_size / 1024)|round|int }} KB | 
+                        Yükleme Tarihi: {{ file.upload_date.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                </div>
+                <a href="{{ url_for('download_file', filename=file.filename) }}" class="download-btn">İndir</a>
+            </div>
+            {% endfor %}
+            {% if not files %}
+            <p style="text-align: center; color: #718096;">Henüz dosya yüklenmemiş.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
