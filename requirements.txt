@@ -5,3 +5,5 @@ Werkzeug==2.3.7
 python-dotenv==1.0.0
 psycopg2-binary==2.9.9
 gunicorn==21.2.0
+pyinstaller==6.3.0
+pywin32==306
