@@ -45,40 +45,60 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        # Admin kullanıcı kontrolü
-        if username == os.environ.get('ADMIN_USERNAME', ADMIN_USERNAME):
-            user = User.query.filter_by(username=username).first()
+    try:
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
             
-            if not user:
-                # İlk giriş ise admin kullanıcısını oluştur
-                user = User(username=username, 
-                          password_hash=generate_password_hash(os.environ.get('ADMIN_PASSWORD', ADMIN_PASSWORD)))
-                db.session.add(user)
-                db.session.commit()
+            app.logger.info(f"Giriş denemesi: {username}")
             
-            if check_password_hash(user.password_hash, password):
-                login_user(user)
+            # Admin kullanıcı kontrolü
+            if username == os.environ.get('ADMIN_USERNAME', ADMIN_USERNAME):
+                user = User.query.filter_by(username=username).first()
                 
-                # Erişim logunu kaydet
-                log = AccessLog(ip_address=request.remote_addr, user_id=user.id)
-                db.session.add(log)
-                db.session.commit()
+                if not user:
+                    # İlk giriş ise admin kullanıcısını oluştur
+                    try:
+                        user = User(username=username, 
+                                  password_hash=generate_password_hash(os.environ.get('ADMIN_PASSWORD', ADMIN_PASSWORD)))
+                        db.session.add(user)
+                        db.session.commit()
+                        app.logger.info(f"Yeni admin kullanıcısı oluşturuldu: {username}")
+                    except Exception as e:
+                        app.logger.error(f"Kullanıcı oluşturma hatası: {str(e)}")
+                        return f"Kullanıcı oluşturulurken hata: {str(e)}", 500
                 
-                return redirect(url_for('dashboard'))
-        
-        flash('Kullanıcı adı veya şifre hatalı!')
-    return render_template('login.html')
+                if check_password_hash(user.password_hash, password):
+                    login_user(user)
+                    
+                    # Erişim logunu kaydet
+                    try:
+                        log = AccessLog(ip_address=request.remote_addr, user_id=user.id)
+                        db.session.add(log)
+                        db.session.commit()
+                        app.logger.info(f"Başarılı giriş: {username} from {request.remote_addr}")
+                    except Exception as e:
+                        app.logger.error(f"Log kayıt hatası: {str(e)}")
+                    
+                    return redirect(url_for('dashboard'))
+            
+            app.logger.warning(f"Başarısız giriş denemesi: {username}")
+            flash('Kullanıcı adı veya şifre hatalı!')
+        return render_template('login.html')
+    except Exception as e:
+        app.logger.error(f"Login hatası: {str(e)}")
+        return f"Giriş işlemi sırasında hata: {str(e)}", 500
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Son erişimleri getir
-    access_logs = AccessLog.query.filter_by(user_id=current_user.id).order_by(AccessLog.access_time.desc()).limit(10)
-    return render_template('dashboard.html', access_logs=access_logs)
+    try:
+        # Son erişimleri getir
+        access_logs = AccessLog.query.filter_by(user_id=current_user.id).order_by(AccessLog.access_time.desc()).limit(10)
+        return render_template('dashboard.html', access_logs=access_logs)
+    except Exception as e:
+        app.logger.error(f"Dashboard hatası: {str(e)}")
+        return f"Bir hata oluştu: {str(e)}", 500
 
 @app.route('/logout')
 @login_required
