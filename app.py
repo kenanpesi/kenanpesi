@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -31,6 +31,16 @@ class AccessLog(db.Model):
     ip_address = db.Column(db.String(50))
     access_time = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+class SystemInfo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    hostname = db.Column(db.String(100))
+    os = db.Column(db.String(100))
+    cpu_percent = db.Column(db.Float)
+    memory_percent = db.Column(db.Float)
+    disk_usage = db.Column(db.Float)
+    ip_address = db.Column(db.String(50))
+    last_update = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -95,13 +105,40 @@ def login():
         app.logger.error(f"Login hatası: {str(e)}")
         return f"Giriş işlemi sırasında hata: {str(e)}", 500
 
+@app.route('/update_system_info', methods=['POST'])
+@login_required
+def update_system_info():
+    try:
+        data = request.get_json()
+        system_info = SystemInfo(
+            hostname=data.get('hostname'),
+            os=data.get('os'),
+            cpu_percent=data.get('cpu_percent'),
+            memory_percent=data.get('memory_percent'),
+            disk_usage=data.get('disk_usage'),
+            ip_address=data.get('ip_address'),
+            last_update=datetime.datetime.strptime(data.get('last_update'), '%Y-%m-%d %H:%M:%S')
+        )
+        db.session.add(system_info)
+        db.session.commit()
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        app.logger.error(f"Sistem bilgisi güncellenirken hata: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
     try:
         # Son erişimleri getir
         access_logs = AccessLog.query.filter_by(user_id=current_user.id).order_by(AccessLog.access_time.desc()).limit(10)
-        return render_template('dashboard.html', access_logs=access_logs)
+        
+        # Son sistem bilgisini getir
+        system_info = SystemInfo.query.order_by(SystemInfo.last_update.desc()).first()
+        
+        return render_template('dashboard.html', 
+                             access_logs=access_logs,
+                             system_info=system_info)
     except Exception as e:
         app.logger.error(f"Dashboard hatası: {str(e)}")
         return f"Bir hata oluştu: {str(e)}", 500
