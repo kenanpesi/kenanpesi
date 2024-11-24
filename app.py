@@ -21,6 +21,21 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(120), nullable=False)
+    
+class AccessLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(50))
+    access_time = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 # Veritabanı tablolarını oluştur
 def init_db():
     with app.app_context():
@@ -43,21 +58,6 @@ init_db()
 # Sabit admin kullanıcı bilgileri
 ADMIN_USERNAME = "muradsayagi"  # Railway'de environment variable olarak ayarlayın
 ADMIN_PASSWORD = "eldos"  # Railway'de environment variable olarak ayarlayın
-
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(120), nullable=False)
-    
-class AccessLog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(50))
-    access_time = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 @app.route('/')
 def home():
