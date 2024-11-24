@@ -10,7 +10,7 @@ SERVER_URL = "https://kenanpeyser.up.railway.app"  # Railway'deki uygulama URL'n
 class FileUploaderApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Dosya Yükleyici")
+        self.root.title("Murad Cloud")  # Başlığı değiştirdim
         self.root.geometry("400x150")
         
         # Ana frame

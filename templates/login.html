@@ -1,107 +1,171 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giriş - Dosya Depolama Sistemi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Unknown - Login</title>
     <style>
-        * {
+        @keyframes matrix {
+            0% { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+            50% { color: #ffff00; text-shadow: 0 0 20px #ffff00; }
+            100% { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            padding: 20px;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000000;
+            color: #00ff00;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: scanline 4s linear infinite;
+            pointer-events: none;
+        }
+
+        .matrix-text {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.1;
+            font-family: monospace;
+            white-space: nowrap;
+            font-size: 14px;
+            overflow: hidden;
+        }
+
+        .matrix-text span {
+            animation: matrix 2s infinite;
+            margin-right: 5px;
         }
 
         .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 20px #00ff00;
+            text-align: center;
+            position: relative;
+            z-index: 2;
             max-width: 400px;
+            width: 90%;
         }
 
-        h1 {
-            color: white;
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        .login-container h1 {
+            margin: 0 0 30px 0;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            font-size: 2.5em;
+            animation: matrix 2s infinite;
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 20px;
+            text-align: left;
         }
 
-        label {
+        .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: #4a5568;
-            font-weight: 500;
+            margin-bottom: 5px;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
         }
 
-        input {
+        .form-group input {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-
-        input:focus {
+            padding: 10px;
+            border: 1px solid #00ff00;
+            background: rgba(0, 0, 0, 0.5);
+            color: #00ff00;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            box-sizing: border-box;
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transition: all 0.3s;
         }
 
-        button {
+        .form-group input:focus {
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .login-btn {
             width: 100%;
-            padding: 0.75rem 1rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
+            padding: 12px;
+            background: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin-top: 20px;
         }
 
-        button:hover {
-            background: #5a67d8;
-            transform: translateY(-1px);
-        }
-
-        button:active {
-            transform: translateY(0);
+        .login-btn:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 20px #00ff00;
         }
 
         .error-message {
-            color: #e53e3e;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-size: 0.875rem;
+            color: #ff0000;
+            text-shadow: 0 0 5px #ff0000;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Dosya Depolama Sistemi</h1>
+    <div class="matrix-text" id="matrixText"></div>
+
     <div class="login-container">
-        {% if error %}
-        <div class="error-message">{{ error }}</div>
-        {% endif %}
+        <h1>Unknown</h1>
         <form method="POST" action="{{ url_for('login') }}">
             <div class="form-group">
                 <label for="username">Kullanıcı Adı</label>
@@ -111,8 +175,38 @@
                 <label for="password">Şifre</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">Giriş Yap</button>
+            <button type="submit" class="login-btn">Giriş Yap</button>
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
         </form>
     </div>
+
+    <script>
+        function createMatrixText() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()';
+            const matrixText = document.getElementById('matrixText');
+            const width = Math.floor(window.innerWidth / 20);
+            const height = Math.floor(window.innerHeight / 20);
+
+            for (let i = 0; i < width * height; i++) {
+                const span = document.createElement('span');
+                span.textContent = characters[Math.floor(Math.random() * characters.length)];
+                span.style.animationDelay = `${Math.random() * 2}s`;
+                matrixText.appendChild(span);
+            }
+
+            setInterval(() => {
+                const spans = matrixText.getElementsByTagName('span');
+                for (let span of spans) {
+                    if (Math.random() < 0.1) {
+                        span.textContent = characters[Math.floor(Math.random() * characters.length)];
+                    }
+                }
+            }, 100);
+        }
+
+        window.onload = createMatrixText;
+    </script>
 </body>
 </html>

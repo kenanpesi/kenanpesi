@@ -1,76 +1,177 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dosya Depolama</title>
+    <title>Unknown</title>
     <style>
+        @keyframes matrix {
+            0% { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+            50% { color: #ffff00; text-shadow: 0 0 20px #ffff00; }
+            100% { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Courier New', monospace;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #000000;
+            color: #00ff00;
+            position: relative;
+            overflow-x: hidden;
         }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: scanline 4s linear infinite;
+            pointer-events: none;
+        }
+
+        .matrix-text {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.1;
+            font-family: monospace;
+            white-space: nowrap;
+            font-size: 14px;
+            overflow: hidden;
+        }
+
+        .matrix-text span {
+            animation: matrix 2s infinite;
+            margin-right: 5px;
+        }
+
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
             padding: 10px;
-            background-color: white;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff00;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px #00ff00;
+            position: relative;
+            z-index: 2;
         }
+
         .header h1 {
             margin: 0;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            font-family: 'Courier New', monospace;
+            animation: matrix 2s infinite;
         }
+
         .logout-btn {
-            background-color: #ff4444;
-            color: white;
-            border: none;
+            background-color: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
         }
+
+        .logout-btn:hover {
+            background-color: #00ff00;
+            color: #000;
+            box-shadow: 0 0 20px #00ff00;
+        }
+
         .file-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
+            position: relative;
+            z-index: 2;
         }
+
         .file-card {
-            background: white;
+            background: rgba(0, 0, 0, 0.8);
             padding: 15px;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 10px #00ff00;
             position: relative;
+            transition: all 0.3s;
         }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px #00ff00;
+        }
+
         .file-card img {
             width: 100%;
             height: 150px;
             object-fit: cover;
             border-radius: 5px;
+            border: 1px solid #00ff00;
             margin-bottom: 10px;
         }
+
         .file-card .file-icon {
             width: 100%;
             height: 150px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f8f9fa;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ff00;
             border-radius: 5px;
             margin-bottom: 10px;
             font-size: 48px;
-            color: #6c757d;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
         }
+
         .file-info {
             font-size: 14px;
-            color: #666;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
         }
+
         .button-group {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
+
         .download-btn, .delete-btn {
             flex: 1;
             padding: 8px;
@@ -78,36 +179,53 @@
             text-decoration: none;
             text-align: center;
             cursor: pointer;
-            border: none;
+            border: 1px solid #00ff00;
+            font-family: 'Courier New', monospace;
             font-size: 14px;
+            transition: all 0.3s;
         }
+
         .download-btn {
-            background-color: #007bff;
-            color: white;
+            background-color: #000;
+            color: #00ff00;
         }
+
         .delete-btn {
-            background-color: #dc3545;
-            color: white;
+            background-color: #000;
+            color: #ff0000;
+            border-color: #ff0000;
         }
+
         .download-btn:hover {
-            background-color: #0056b3;
+            background-color: #00ff00;
+            color: #000;
+            box-shadow: 0 0 20px #00ff00;
         }
+
         .delete-btn:hover {
-            background-color: #c82333;
+            background-color: #ff0000;
+            color: #000;
+            box-shadow: 0 0 20px #ff0000;
         }
+
         .no-files {
             text-align: center;
-            color: #666;
+            color: #00ff00;
             padding: 20px;
-            background: white;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff00;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px #00ff00;
+            position: relative;
+            z-index: 2;
         }
     </style>
 </head>
 <body>
+    <div class="matrix-text" id="matrixText"></div>
+
     <div class="header">
-        <h1>Dosyalarım</h1>
+        <h1>Unknown</h1>
         <a href="{{ url_for('logout') }}" class="logout-btn">Çıkış Yap</a>
     </div>
 
@@ -139,5 +257,32 @@
             </div>
         {% endif %}
     </div>
+
+    <script>
+        function createMatrixText() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()';
+            const matrixText = document.getElementById('matrixText');
+            const width = Math.floor(window.innerWidth / 20);
+            const height = Math.floor(window.innerHeight / 20);
+
+            for (let i = 0; i < width * height; i++) {
+                const span = document.createElement('span');
+                span.textContent = characters[Math.floor(Math.random() * characters.length)];
+                span.style.animationDelay = `${Math.random() * 2}s`;
+                matrixText.appendChild(span);
+            }
+
+            setInterval(() => {
+                const spans = matrixText.getElementsByTagName('span');
+                for (let span of spans) {
+                    if (Math.random() < 0.1) {
+                        span.textContent = characters[Math.floor(Math.random() * characters.length)];
+                    }
+                }
+            }, 100);
+        }
+
+        window.onload = createMatrixText;
+    </script>
 </body>
 </html>
