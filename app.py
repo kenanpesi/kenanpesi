@@ -25,8 +25,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max dosya boyutu
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'pdf', 'doc', 'docx', 'txt'}
 
 # Sabit kullanıcı bilgileri
-ADMIN_USERNAME = "kenanpesi"  # İstediğiniz kullanıcı adını girin
-ADMIN_PASSWORD = "your-password-here"  # İstediğiniz şifreyi girin
+ADMIN_USERNAME = "muradsayagi"  # İstediğiniz kullanıcı adını girin
+ADMIN_PASSWORD = "eldos"  # İstediğiniz şifreyi girin
 API_KEY = "Ayin2iyul"  # İstediğiniz API anahtarını girin
 
 # Upload klasörünü oluştur
