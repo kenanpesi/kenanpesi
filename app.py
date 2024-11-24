@@ -10,10 +10,15 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'gizli-anahtar-buraya')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
+
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Sabit admin kullanıcı bilgileri
+ADMIN_USERNAME = "admin"  # Railway'de environment variable olarak ayarlayın
+ADMIN_PASSWORD = "admin123"  # Railway'de environment variable olarak ayarlayın
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,27 +37,7 @@ def load_user(user_id):
 
 @app.route('/')
 def home():
-    return render_template('home.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        user = User.query.filter_by(username=username).first()
-        if user:
-            flash('Bu kullanıcı adı zaten kullanılıyor!')
-            return redirect(url_for('register'))
-        
-        new_user = User(username=username, password_hash=generate_password_hash(password))
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Başarıyla kayıt oldunuz!')
-        return redirect(url_for('login'))
-    
-    return render_template('register.html')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -60,16 +45,26 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password_hash, password):
-            login_user(user)
+        # Admin kullanıcı kontrolü
+        if username == os.environ.get('ADMIN_USERNAME', ADMIN_USERNAME):
+            user = User.query.filter_by(username=username).first()
             
-            # Erişim logunu kaydet
-            log = AccessLog(ip_address=request.remote_addr, user_id=user.id)
-            db.session.add(log)
-            db.session.commit()
+            if not user:
+                # İlk giriş ise admin kullanıcısını oluştur
+                user = User(username=username, 
+                          password_hash=generate_password_hash(os.environ.get('ADMIN_PASSWORD', ADMIN_PASSWORD)))
+                db.session.add(user)
+                db.session.commit()
             
-            return redirect(url_for('dashboard'))
+            if check_password_hash(user.password_hash, password):
+                login_user(user)
+                
+                # Erişim logunu kaydet
+                log = AccessLog(ip_address=request.remote_addr, user_id=user.id)
+                db.session.add(log)
+                db.session.commit()
+                
+                return redirect(url_for('dashboard'))
         
         flash('Kullanıcı adı veya şifre hatalı!')
     return render_template('login.html')

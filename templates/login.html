@@ -6,7 +6,7 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Giriş Yap</h2>
+        <h2>Admin Girişi</h2>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 {% for message in messages %}
@@ -25,9 +25,6 @@
             </div>
             <button type="submit" class="btn btn-primary">Giriş Yap</button>
         </form>
-        <div class="mt-3">
-            <a href="{{ url_for('register') }}">Hesabınız yok mu? Kayıt olun</a>
-        </div>
     </div>
 </body>
 </html>
