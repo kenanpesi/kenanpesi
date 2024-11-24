@@ -133,5 +133,22 @@ def upload_file():
 def download_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+# Dosya silme
+@app.route('/delete/<int:file_id>', methods=['POST'])
+@login_required
+def delete_file(file_id):
+    file = File.query.get_or_404(file_id)
+    
+    # Dosyayı diskten sil
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    
+    # Veritabanından sil
+    db.session.delete(file)
+    db.session.commit()
+    
+    return redirect(url_for('home'))
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))

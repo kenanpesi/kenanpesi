@@ -41,6 +41,7 @@
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
         }
         .file-card img {
             width: 100%;
@@ -65,18 +66,42 @@
             font-size: 14px;
             color: #666;
         }
-        .download-btn {
-            display: block;
-            background-color: #007bff;
-            color: white;
-            text-align: center;
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .download-btn, .delete-btn {
+            flex: 1;
             padding: 8px;
             border-radius: 5px;
             text-decoration: none;
-            margin-top: 10px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+        }
+        .download-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
         }
         .download-btn:hover {
             background-color: #0056b3;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .no-files {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -87,21 +112,32 @@
     </div>
 
     <div class="file-grid">
-        {% for file in files %}
-        <div class="file-card">
-            {% if file.file_type and file.file_type.startswith('image/') %}
-                <img src="{{ url_for('download_file', filename=file.filename) }}" alt="{{ file.original_filename }}">
-            {% else %}
-                <div class="file-icon">📄</div>
-            {% endif %}
-            <div class="file-info">
-                <strong>{{ file.original_filename }}</strong><br>
-                Boyut: {{ '{:.1f}'.format(file.file_size / 1024) }} KB<br>
-                Tarih: {{ file.upload_date.strftime('%d/%m/%Y %H:%M') }}
+        {% if files %}
+            {% for file in files %}
+            <div class="file-card">
+                {% if file.file_type and file.file_type.startswith('image/') %}
+                    <img src="{{ url_for('download_file', filename=file.filename) }}" alt="{{ file.original_filename }}">
+                {% else %}
+                    <div class="file-icon">📄</div>
+                {% endif %}
+                <div class="file-info">
+                    <strong>{{ file.original_filename }}</strong><br>
+                    Boyut: {{ '{:.1f}'.format(file.file_size / 1024) }} KB<br>
+                    Tarih: {{ file.upload_date.strftime('%d/%m/%Y %H:%M') }}
+                </div>
+                <div class="button-group">
+                    <a href="{{ url_for('download_file', filename=file.filename) }}" class="download-btn">İndir</a>
+                    <form action="{{ url_for('delete_file', file_id=file.id) }}" method="POST" style="flex: 1;">
+                        <button type="submit" class="delete-btn" onclick="return confirm('Bu dosyayı silmek istediğinizden emin misiniz?')">Sil</button>
+                    </form>
+                </div>
             </div>
-            <a href="{{ url_for('download_file', filename=file.filename) }}" class="download-btn">İndir</a>
-        </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <div class="no-files">
+                <p>Henüz dosya yüklenmemiş.</p>
+            </div>
+        {% endif %}
     </div>
 </body>
 </html>
