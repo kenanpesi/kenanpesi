@@ -16,6 +16,10 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# Veritabanı tablolarını oluştur
+with app.app_context():
+    db.create_all()
+
 # Sabit admin kullanıcı bilgileri
 ADMIN_USERNAME = "muradsayagi"  # Railway'de environment variable olarak ayarlayın
 ADMIN_PASSWORD = "eldos"  # Railway'de environment variable olarak ayarlayın
@@ -83,7 +87,5 @@ def logout():
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
