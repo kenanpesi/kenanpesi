@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 node_modules/
 .DS_Store
 .env
 *.log
 out/
+=======
+__pycache__/
+*.pyc
+instance/
+.env
+*.db
+>>>>>>> 0a39acc8ee25066047bf5606fb695e6f99d15663
