@@ -24,7 +24,7 @@ CORS(app, resources={
             "https://kenanpeyser.up.railway.app",
             "http://localhost:5000"  # Development environment
         ],
-        "methods": ["GET", "POST"],
+        "methods": ["GET", "POST", "OPTIONS", "WEBSOCKET"],
         "allow_headers": ["Content-Type", "X-API-Key"]
     }
 })
@@ -36,7 +36,11 @@ socketio = SocketIO(
     ],
     logger=True,
     engineio_logger=True,
-    async_mode='gevent'
+    path='/ws',
+    async_mode=None,  # Let SocketIO choose the best mode
+    ping_timeout=30,
+    ping_interval=15,
+    manage_session=False
 )
 
 connected_clients = {}
