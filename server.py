@@ -17,8 +17,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "allow_headers": ["Content-Type", "X-API-Key"],
+        "methods": ["GET", "POST", "OPTIONS"]
+    }
+})
+socketio = SocketIO(app, cors_allowed_origins="*", path='/ws', logger=True, engineio_logger=True)
 
 API_KEY = "K3N4N_P3YS3R_S3CR3T_K3Y"
 connected_clients = {}
