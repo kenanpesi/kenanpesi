@@ -23,11 +23,17 @@ WEBSOCKET_URL = os.getenv("WEBSOCKET_URL", "wss://kenanpeyser.up.railway.app/ws"
 CLIENT_ID = socket.gethostname()
 API_KEY = os.getenv("API_KEY", "K3N4N_P3YS3R_S3CR3T_K3Y")  # Varsayılan API anahtarı
 
-# WebSocket bağlantı başlıkları
+# WebSocket bağlantı başlıkları ve SSL bağlamı
 websocket_headers = {
     "X-API-Key": API_KEY,
     "Origin": "https://kenanpeyser.up.railway.app"
 }
+
+# SSL bağlamını devre dışı bırak (güvenlik duvarı sorunları için)
+import ssl
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
 
 if not API_KEY:
     logging.error("API_KEY çevre değişkeni ayarlanmamış!")
@@ -98,14 +104,13 @@ async def websocket_client():
             logging.info(f"WebSocket sunucusuna bağlanmaya çalışılıyor: {WEBSOCKET_URL}")
             
             # WebSocket bağlantı seçenekleri
-            extra_headers = websocket_headers.copy()
-            
             async with websockets.connect(
                 WEBSOCKET_URL,
-                extra_headers=extra_headers,
+                extra_headers=websocket_headers,
                 ping_interval=15,
                 ping_timeout=30,
-                close_timeout=10
+                close_timeout=10,
+                ssl=ssl_context
             ) as websocket:
                 logging.info(f"WebSocket sunucusuna bağlantı başarılı!")
                 retry_count = 0  # Başarılı bağlantıda sayacı sıfırla
