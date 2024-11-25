@@ -24,7 +24,29 @@ CORS(app, resources={
         "methods": ["GET", "POST", "OPTIONS"]
     }
 })
-socketio = SocketIO(app, cors_allowed_origins="*", path='/ws', logger=True, engineio_logger=True)
+
+# WebSocket yapılandırması
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    path='/ws',
+    logger=True,
+    engineio_logger=True,
+    async_mode='gevent',
+    ping_timeout=30,
+    ping_interval=15,
+    always_connect=True,
+    transports=['websocket']
+)
+
+# WebSocket hata ayıklama için
+@socketio.on_error()
+def error_handler(e):
+    logger.error(f"WebSocket hatası: {str(e)}")
+
+@socketio.on_error_default
+def default_error_handler(e):
+    logger.error(f"WebSocket varsayılan hata: {str(e)}")
 
 API_KEY = "K3N4N_P3YS3R_S3CR3T_K3Y"
 connected_clients = {}
