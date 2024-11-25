@@ -1,43 +1,75 @@
-from flask import Flask, request, render_template
+import os
+from flask import Flask, request, render_template, send_from_directory
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import json
 import logging
-import os
+import sys
+
+# Detaylı loglama ayarları
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
 
 API_KEY = "K3N4N_P3YS3R_S3CR3T_K3Y"
 connected_clients = {}
 
-logging.basicConfig(level=logging.INFO)
-
+# Static dosyaları sunmak için
 @app.route('/')
 def index():
-    if request.headers.get('X-API-Key') != API_KEY:
-        return {"error": "Unauthorized"}, 401
-    return render_template('dashboard.html')
+    try:
+        logger.info("Ana sayfa isteği alındı")
+        if request.headers.get('X-API-Key') != API_KEY:
+            return {"error": "Unauthorized"}, 401
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.error(f"Ana sayfa yüklenirken hata: {str(e)}")
+        return str(e), 500
+
+# Template klasörü için özel rota
+@app.route('/templates/<path:path>')
+def send_template(path):
+    try:
+        logger.info(f"Template dosyası istendi: {path}")
+        return send_from_directory('templates', path)
+    except Exception as e:
+        logger.error(f"Template dosyası gönderilirken hata: {path}, {str(e)}")
+        return str(e), 404
 
 @socketio.on('connect')
 def handle_connect():
-    logging.info('Client connected to WebSocket')
+    try:
+        logger.info(f"Yeni WebSocket bağlantısı: {request.sid}")
+    except Exception as e:
+        logger.error(f"Bağlantı hatası: {str(e)}")
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    # İstemci bağlantısı kesildiğinde listeden çıkar
-    for client_id, client in list(connected_clients.items()):
-        if client.get('socket_id') == request.sid:
-            del connected_clients[client_id]
-            emit('client_disconnected', {'client_id': client_id}, broadcast=True)
-            logging.info(f'Client disconnected: {client_id}')
-            break
+    try:
+        for client_id, client in list(connected_clients.items()):
+            if client.get('socket_id') == request.sid:
+                del connected_clients[client_id]
+                emit('client_disconnected', {'client_id': client_id}, broadcast=True)
+                logger.info(f'Client bağlantısı kesildi: {client_id}')
+                break
+    except Exception as e:
+        logger.error(f"Bağlantı kesme hatası: {str(e)}")
 
 @socketio.on('register')
 def handle_register(data):
     try:
+        logger.info(f"Register isteği alındı: {data}")
         if data.get('api_key') != API_KEY:
+            logger.warning("Geçersiz API anahtarı")
             return
         
         client_id = data.get('client_id')
@@ -47,42 +79,45 @@ def handle_register(data):
                 'info': {}
             }
             emit('client_list', {'clients': list(connected_clients.keys())}, broadcast=True)
-            logging.info(f'Client registered: {client_id}')
+            logger.info(f'Client kaydedildi: {client_id}')
     except Exception as e:
-        logging.error(f'Error in handle_register: {e}')
+        logger.error(f"Register hatası: {str(e)}")
 
 @socketio.on('command')
 def handle_command(data):
     try:
+        logger.info(f"Komut alındı: {data}")
         client_id = data.get('client_id')
         command = data.get('command')
         
         if client_id in connected_clients:
             client_socket_id = connected_clients[client_id]['socket_id']
             
-            # Komut ve parametreleri ilet
             command_data = {
                 'type': 'command',
                 'command': command
             }
             
-            # Dosya komutları için path parametresini ekle
             if command == 'files' and 'path' in data:
                 command_data['path'] = data['path']
             
             emit('message', command_data, room=client_socket_id)
-            logging.info(f'Command sent to {client_id}: {command}')
+            logger.info(f'Komut gönderildi: {client_id} -> {command}')
+        else:
+            logger.warning(f"Client bulunamadı: {client_id}")
     except Exception as e:
-        logging.error(f'Error in handle_command: {e}')
+        logger.error(f"Komut hatası: {str(e)}")
 
 @socketio.on('response')
 def handle_response(data):
     try:
-        # Yanıtı tüm bağlı istemcilere ilet
+        logger.info(f"Yanıt alındı: {data}")
         emit('message', data, broadcast=True)
-        logging.info(f'Response broadcasted: {data.get("command")}')
+        logger.info(f'Yanıt iletildi: {data.get("command")}')
     except Exception as e:
-        logging.error(f'Error in handle_response: {e}')
+        logger.error(f"Yanıt hatası: {str(e)}")
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    port = int(os.environ.get('PORT', 5000))
+    logger.info(f"Uygulama başlatılıyor - Port: {port}")
+    socketio.run(app, host='0.0.0.0', port=port)
