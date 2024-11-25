@@ -18,10 +18,14 @@ from io import BytesIO
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-SERVER_URL = "https://kenanpeyser.up.railway.app"
-WEBSOCKET_URL = "wss://kenanpeyser.up.railway.app/ws"
+SERVER_URL = os.getenv("SERVER_URL", "https://kenanpeyser.up.railway.app")
+WEBSOCKET_URL = os.getenv("WEBSOCKET_URL", "wss://kenanpeyser.up.railway.app/ws")
 CLIENT_ID = socket.gethostname()
-API_KEY = "K3N4N_P3YS3R_S3CR3T_K3Y"  # Güvenli bir API anahtarı
+API_KEY = os.getenv("API_KEY")  # API key should be set as environment variable
+
+if not API_KEY:
+    logging.error("API_KEY environment variable is not set")
+    sys.exit(1)
 
 def get_system_info():
     info = {
@@ -79,9 +83,16 @@ def list_files(path="."):
         }
 
 async def websocket_client():
+    retry_count = 0
+    max_retries = 5
+    retry_delay = 5  # seconds
+
     while True:
         try:
             async with websockets.connect(WEBSOCKET_URL) as websocket:
+                logging.info(f"Connected to WebSocket server: {WEBSOCKET_URL}")
+                retry_count = 0  # Reset retry count on successful connection
+                
                 await websocket.send(json.dumps({
                     "type": "register",
                     "client_id": CLIENT_ID,
@@ -89,28 +100,43 @@ async def websocket_client():
                 }))
                 
                 while True:
-                    message = await websocket.recv()
-                    data = json.loads(message)
-                    
-                    if data["type"] == "command":
-                        response = None
-                        if data["command"] == "status":
-                            response = get_system_info()
-                        elif data["command"] == "screenshot":
-                            response = take_screenshot()
-                        elif data["command"] == "files":
-                            response = list_files()
+                    try:
+                        message = await websocket.recv()
+                        data = json.loads(message)
                         
-                        if response:
-                            await websocket.send(json.dumps({
-                                "type": "response",
-                                "command": data["command"],
-                                "data": response
-                            }))
-                    
+                        if data["type"] == "command":
+                            response = None
+                            if data["command"] == "status":
+                                response = get_system_info()
+                            elif data["command"] == "screenshot":
+                                response = take_screenshot()
+                            elif data["command"] == "files":
+                                path = data.get("path", ".")
+                                response = list_files(path)
+                            
+                            if response:
+                                await websocket.send(json.dumps({
+                                    "type": "response",
+                                    "client_id": CLIENT_ID,
+                                    "data": response
+                                }))
+                    except json.JSONDecodeError as e:
+                        logging.error(f"Invalid JSON message received: {e}")
+                    except Exception as e:
+                        logging.error(f"Error processing message: {e}")
+                        
+        except (websockets.exceptions.ConnectionClosed, ConnectionRefusedError) as e:
+            retry_count += 1
+            if retry_count > max_retries:
+                logging.error(f"Failed to connect after {max_retries} attempts. Exiting.")
+                sys.exit(1)
+            
+            logging.warning(f"Connection failed (attempt {retry_count}/{max_retries}): {e}")
+            await asyncio.sleep(retry_delay)
+            
         except Exception as e:
-            logging.error(f"Websocket error: {e}")
-            await asyncio.sleep(5)  # Yeniden bağlanmadan önce bekle
+            logging.error(f"Unexpected error in websocket client: {e}")
+            await asyncio.sleep(retry_delay)
 
 @app.route('/status', methods=['GET'])
 def status():

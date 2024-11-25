@@ -5,6 +5,7 @@ from flask_cors import CORS
 import json
 import logging
 import sys
+from datetime import datetime
 
 # Detaylı loglama ayarları
 logging.basicConfig(
@@ -17,10 +18,48 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder='.')
-CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode='gevent')
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://kenanpeyser.up.railway.app",
+            "http://localhost:5000"  # Development environment
+        ],
+        "methods": ["GET", "POST"],
+        "allow_headers": ["Content-Type", "X-API-Key"]
+    }
+})
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=[
+        "https://kenanpeyser.up.railway.app",
+        "http://localhost:5000"
+    ],
+    logger=True,
+    engineio_logger=True,
+    async_mode='gevent'
+)
 
 connected_clients = {}
+
+# Rate limiting için basit bir implementasyon
+request_counts = {}
+RATE_LIMIT = 100  # requests per minute
+RATE_WINDOW = 60  # seconds
+
+def is_rate_limited(client_id):
+    current_time = datetime.now().timestamp()
+    if client_id not in request_counts:
+        request_counts[client_id] = {"count": 1, "window_start": current_time}
+        return False
+    
+    client_data = request_counts[client_id]
+    if current_time - client_data["window_start"] > RATE_WINDOW:
+        client_data["count"] = 1
+        client_data["window_start"] = current_time
+        return False
+    
+    client_data["count"] += 1
+    return client_data["count"] > RATE_LIMIT
 
 # Static dosyaları sunmak için
 @app.route('/')
@@ -86,6 +125,12 @@ def handle_command(data):
         logger.info(f"Komut alındı: {data}")
         if not isinstance(data, dict) or 'command' not in data or 'target_id' not in data:
             raise ValueError("Invalid command data")
+        
+        # Rate limiting kontrolü
+        if is_rate_limited(request.sid):
+            logger.warning(f"Rate limit exceeded for client: {request.sid}")
+            emit('error', {'error': 'Rate limit exceeded'})
+            return
         
         command = data['command']
         target_id = data['target_id']
