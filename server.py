@@ -21,7 +21,7 @@ CORS(app, resources={
     r"/*": {
         "origins": "*",
         "allow_headers": ["Content-Type", "X-API-Key"],
-        "methods": ["GET", "POST", "OPTIONS"]
+        "methods": ["GET", "POST", "OPTIONS", "WEBSOCKET"]
     }
 })
 
@@ -32,12 +32,17 @@ socketio = SocketIO(
     path='/ws',
     logger=True,
     engineio_logger=True,
-    async_mode='gevent',
+    async_mode='eventlet',
     ping_timeout=30,
     ping_interval=15,
     always_connect=True,
     transports=['websocket']
 )
+
+# WebSocket route'u
+@app.route('/ws')
+def websocket_route():
+    return "WebSocket endpoint active", 200
 
 # WebSocket hata ayıklama için
 @socketio.on_error()
