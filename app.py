@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode='gevent')
 
 API_KEY = "K3N4N_P3YS3R_S3CR3T_K3Y"
 connected_clients = {}
