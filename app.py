@@ -16,11 +16,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode='gevent')
 
-API_KEY = "K3N4N_P3YS3R_S3CR3T_K3Y"
 connected_clients = {}
 
 # Static dosyaları sunmak için
@@ -28,8 +27,6 @@ connected_clients = {}
 def index():
     try:
         logger.info("Ana sayfa isteği alındı")
-        if request.headers.get('X-API-Key') != API_KEY:
-            return {"error": "Unauthorized"}, 401
         return render_template('dashboard.html')
     except Exception as e:
         logger.error(f"Ana sayfa yüklenirken hata: {str(e)}")
