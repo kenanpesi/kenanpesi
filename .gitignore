@@ -1,13 +1,49 @@
-<<<<<<< HEAD
-node_modules/
-.DS_Store
-.env
-*.log
-out/
-=======
+# Python
 __pycache__/
-*.pyc
-instance/
-.env
-*.db
->>>>>>> 0a39acc8ee25066047bf5606fb695e6f99d15663
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Logs
+*.log
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

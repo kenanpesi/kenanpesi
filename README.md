@@ -1,81 +1,47 @@
-<<<<<<< HEAD
-# Remote PC Access
+# MuradSayagi Remote Access Tool
 
-Bu uygulama, web tarayıcısı üzerinden uzaktan bilgisayar erişimi sağlar.
+A WebSocket-based remote system management tool with a hacker-themed interface.
 
-## Özellikler
+## Features
 
-- Web tabanlı arayüz
-- Gerçek zamanlı komut çalıştırma
-- Birden fazla bilgisayar desteği
-- Kolay kurulum
+- Real-time system monitoring
+- Remote screenshot capture
+- File system browsing
+- System information display
+- WebSocket-based communication
+- Modern hacker-themed UI
 
-## Kurulum
+## Quick Start
 
-### Web Sunucusu
+1. Download `RemoteAccess.exe` from releases
+2. Run the executable on the target Windows system
+3. Access the control panel at: https://kenanpeyser.up.railway.app
 
-```bash
-cd web-server
-npm install
-npm start
-```
+## Security
 
-### Electron Uygulaması
+- API Key Authentication
+- Encrypted WebSocket Communication (WSS)
+- Limited Command Execution
 
-```bash
-cd hack-terminal
-npm install
-npm start
-=======
-# Login Sistemi
+## Technical Details
 
-Bu proje, Flask kullanılarak oluşturulmuş basit bir login ve kayıt sistemi içerir. Sistem aynı zamanda uzaktan erişen kullanıcıların IP adreslerini ve erişim zamanlarını kaydeder.
+- Server: Flask + Flask-SocketIO
+- Client: Python + WebSockets
+- Interface: HTML5 + Bootstrap
+- Deployment: Railway Platform
 
-## Özellikler
+## Development
 
-- Kullanıcı kaydı
-- Kullanıcı girişi
-- Erişim logları (IP adresi ve zaman)
-- Güvenli şifre saklama
-- Responsive tasarım
-
-## Kurulum
-
-1. Repoyu klonlayın:
-```bash
-git clone [REPO_URL]
-```
-
-2. Gerekli paketleri yükleyin:
+### Requirements
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Uygulamayı çalıştırın:
+### Build
 ```bash
-python app.py
->>>>>>> 0a39acc8ee25066047bf5606fb695e6f99d15663
+python build.py
 ```
 
-## Kullanım
+## Disclaimer
 
-<<<<<<< HEAD
-1. Web sunucusunu başlatın
-2. Electron uygulamasını bilgisayarınızda çalıştırın
-3. Web tarayıcınızdan `http://localhost:3000` adresine gidin
-4. Bağlı bilgisayarı seçin ve komutları çalıştırın
-
-## Güvenlik
-
-Bu uygulama sadece güvenilir ağlarda kullanılmalıdır. Güvenlik önlemleri almadan internete açık şekilde kullanmayın.
-=======
-- `/register` - Yeni kullanıcı kaydı
-- `/login` - Kullanıcı girişi
-- `/dashboard` - Kullanıcı paneli ve erişim logları
-
-## Güvenlik
-
-- Şifreler hash'lenerek saklanır
-- Flask-Login ile oturum yönetimi
-- SQL injection koruması
->>>>>>> 0a39acc8ee25066047bf5606fb695e6f99d15663
+This tool is for educational purposes only. Use responsibly and only on systems you own or have permission to access.
