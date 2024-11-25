@@ -1,5 +1,7 @@
 from server import socketio, app
-import os
+
+# Gunicorn için WSGI application
+application = socketio.middleware(app)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

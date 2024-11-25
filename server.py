@@ -32,11 +32,11 @@ socketio = SocketIO(
     path='/ws',
     logger=True,
     engineio_logger=True,
-    async_mode='eventlet',
+    async_mode='threading',
     ping_timeout=30,
     ping_interval=15,
     always_connect=True,
-    transports=['websocket']
+    manage_session=False
 )
 
 # WebSocket route'u
